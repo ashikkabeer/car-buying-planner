@@ -750,11 +750,81 @@ function renderCombinedCharts({ amort, sip, breakdown }) {
   });
 }
 
-function updateCards({ loanAmount, emi, requiredDownPayment, totalCarCost }) {
+function updateCards({ loanAmount, emi, requiredDownPayment, totalCarCost, sip }) {
+  console.log('Updating cards with SIP data:', sip);
+  
+  // Loan related values
   setText('card-loan-amount', formatCurrencyINR(loanAmount));
   setText('card-emi', formatCurrencyINR(emi));
   setText('card-dp', formatCurrencyINR(requiredDownPayment));
   setText('card-total-cost', formatCurrencyINR(totalCarCost));
+
+  // Use pre-calculated total SIP investment and returns
+  const totalSipInvestment = sip?.totalContributed || 0;
+  const totalSipValue = sip?.endValue || 0;
+  const totalReturns = totalSipValue - totalSipInvestment;
+
+  console.log('SIP Calculations:', {
+    totalSipInvestment,
+    totalSipValue,
+    totalReturns
+  });
+
+  // Update SIP related values
+  setText('card-total-sip', formatCurrencyINR(totalSipInvestment));
+  setText('card-sip-returns', formatCurrencyINR(totalReturns));
+  setText('card-portfolio-value', formatCurrencyINR(totalSipValue));
+  
+  // Generate investment insight
+  generateInvestmentInsight(totalReturns, totalCarCost, loanAmount);
+}
+
+function generateInvestmentInsight(totalReturns, totalCarCost, loanAmount) {
+  const insightSection = $('investment-insight');
+  const insightText = $('insight-text');
+  
+  if (!insightSection || !insightText) return;
+  
+  let insightMessage = '';
+  let isPositive = true;
+  
+  // Calculate loan interest (total cost - loan amount - down payment)
+  const downPayment = parseFloat($('card-dp').textContent.replace(/[₹,]/g, '')) || 0;
+  const totalInterest = totalCarCost - loanAmount - downPayment;
+  
+  if (totalReturns > totalInterest) {
+    // Investment returns are higher than loan interest
+    const netBenefit = totalReturns - totalInterest;
+    const benefitPercentage = ((netBenefit / totalInterest) * 100).toFixed(1);
+    
+    insightMessage = `🎉 Excellent! Your investment returns of <span class="insight-highlight">${formatCurrencyINR(totalReturns)}</span> exceed your loan interest of <span class="insight-highlight">${formatCurrencyINR(totalInterest)}</span> by <span class="insight-positive">${formatCurrencyINR(netBenefit)}</span>. That's <span class="insight-positive">${benefitPercentage}% more</span> than what you're paying in interest! Your money is working harder than your debt.`;
+    isPositive = true;
+  } else if (totalReturns > 0) {
+    // Investment returns are positive but less than loan interest
+    const shortfall = totalInterest - totalReturns;
+    const shortfallPercentage = ((shortfall / totalInterest) * 100).toFixed(1);
+    
+    insightMessage = `💭 Your investment returns of <span class="insight-highlight">${formatCurrencyINR(totalReturns)}</span> are positive, but fall short of your loan interest by <span class="insight-negative">${formatCurrencyINR(shortfall)}</span>. Consider increasing your SIP amount or exploring higher-return investments to bridge this <span class="insight-negative">${shortfallPercentage}%</span> gap.`;
+    isPositive = false;
+  } else {
+    // No investment returns
+    insightMessage = `⚠️ You're not investing alongside your car loan. Your loan interest will cost you <span class="insight-highlight">${formatCurrencyINR(totalInterest)}</span>. Consider starting a SIP to build wealth while you pay off your car!`;
+    isPositive = false;
+  }
+  
+  // Additional comparison with car cost
+  if (totalReturns > 0) {
+    const carCostComparison = ((totalReturns / totalCarCost) * 100).toFixed(1);
+    insightMessage += ` <br><br>📈 Your investment returns represent <span class="insight-highlight">${carCostComparison}%</span> of your total car cost - that's like getting a significant discount on your car through smart investing!`;
+  }
+  
+  insightText.innerHTML = insightMessage;
+  insightSection.style.display = 'block';
+  
+  // Add animation
+  setTimeout(() => {
+    insightSection.style.animation = 'fadeInUp 600ms ease both';
+  }, 100);
 }
 
 function handleCalculate(evt) {
@@ -793,7 +863,7 @@ function handleCalculate(evt) {
     sipYearly: sip.yearly,
   });
 
-  updateCards({ loanAmount, emi, requiredDownPayment, totalCarCost });
+  updateCards({ loanAmount, emi, requiredDownPayment, totalCarCost, sip });
 
   renderLoanTable(amort.yearly);
   renderSipTable(sip.yearly);

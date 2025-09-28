@@ -276,6 +276,13 @@ button:disabled {
   display: grid; 
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); 
   gap: 20px; 
+  max-width: 1200px;
+}
+
+@media (min-width: 1400px) {
+  .summary-cards {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 .summary-card { 
@@ -307,6 +314,95 @@ button:disabled {
   color: var(--text);
   letter-spacing: -0.02em;
   line-height: 1.2;
+}
+
+/* Special styling for Investment Returns card */
+.summary-card.highlight-card {
+  background: linear-gradient(135deg, var(--primary) 0%, #00cc6a 100%);
+  border: 2px solid var(--primary);
+  box-shadow: 0 8px 32px rgba(0, 255, 136, 0.2);
+  transform: scale(1.02);
+}
+
+.summary-card.highlight-card .label {
+  color: #000000;
+  font-weight: 700;
+}
+
+.summary-card .value.highlight-returns {
+  color: #000000;
+  font-weight: 900;
+  text-shadow: none;
+}
+
+/* Insight Section */
+.insight-section {
+  margin-top: 40px;
+  margin-bottom: 32px;
+  animation: fadeInUp 500ms ease both;
+}
+
+.insight-card {
+  background: linear-gradient(135deg, #f8fffe 0%, #f0fff4 100%);
+  border: 2px solid var(--primary);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.insight-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--primary);
+}
+
+.insight-icon {
+  font-size: 32px;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.insight-content h3 {
+  margin: 0 0 12px 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+.insight-content p {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.insight-highlight {
+  color: #006b3f;
+  font-weight: 700;
+  background: rgba(0, 255, 136, 0.15);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.insight-positive {
+  color: #006b3f;
+  font-weight: 700;
+}
+
+.insight-negative {
+  color: #cc0000;
+  font-weight: 700;
 }
 
 /* Tabs */
@@ -545,6 +641,40 @@ button:disabled {
   .app-header .byline {
     font-size: 15px;
   }
+  
+  /* Insight responsive */
+  .insight-section {
+    margin-top: 24px;
+    margin-bottom: 24px;
+  }
+  
+  .insight-card {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+    padding: 20px;
+    border-radius: 12px;
+  }
+  
+  .insight-icon {
+    font-size: 28px;
+    margin: 0 auto;
+  }
+  
+  .insight-content h3 {
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+  
+  .insight-content p {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  
+  .insight-highlight {
+    padding: 1px 4px;
+    font-size: 13px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -571,6 +701,30 @@ button:disabled {
   
   .chart-container {
     padding: 20px;
+  }
+  
+  /* Insight card for very small screens */
+  .insight-card {
+    padding: 16px;
+    gap: 12px;
+  }
+  
+  .insight-icon {
+    font-size: 24px;
+  }
+  
+  .insight-content h3 {
+    font-size: 16px;
+  }
+  
+  .insight-content p {
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  
+  .insight-highlight {
+    padding: 1px 3px;
+    font-size: 12px;
   }
   
   .table-header {

@@ -75,7 +75,7 @@ export function amortizationScheduleYearly(principal, annualRatePercent, tenureY
 }
 
 export function sipFutureValueMonthly(monthlyInvestmentStart, annualReturnPercent, years, annualStepUpPercent) {
-  const rMonthly = toMonthlyRate(annualReturnPercent) * 12 / 12; // toMonthlyRate already annual/12
+  const rMonthly = Number(annualReturnPercent) / 100 / 12; // Convert annual rate to monthly
   const n = Math.max(0, Math.round(Number(years) * 12));
   const stepUp = Math.max(0, Number(annualStepUpPercent)) / 100;
   let monthlyInvestment = Math.max(0, Number(monthlyInvestmentStart));
@@ -84,9 +84,10 @@ export function sipFutureValueMonthly(monthlyInvestmentStart, annualReturnPercen
   let contributedYear = 0;
 
   for (let m = 1; m <= n; m += 1) {
-    // contribution at month start
-    value = value * (1 + rMonthly) + monthlyInvestment;
+    // Add contribution at month start
     contributedYear += monthlyInvestment;
+    // Compound growth for the month
+    value = (value + monthlyInvestment) * (1 + rMonthly);
 
     if (m % 12 === 0 || m === n) {
       const year = Math.ceil(m / 12);
@@ -96,7 +97,16 @@ export function sipFutureValueMonthly(monthlyInvestmentStart, annualReturnPercen
       monthlyInvestment = monthlyInvestment * (1 + stepUp);
     }
   }
-  return { yearly };
+  
+  // Calculate totals
+  const totalContributed = yearly.reduce((sum, y) => sum + y.contributed, 0);
+  const endValue = yearly[yearly.length - 1]?.endValue || 0;
+  
+  return { 
+    yearly,
+    totalContributed,
+    endValue
+  };
 }
 
 export function salaryProjectionAnnual(startMonthlySalary, annualGrowthPercent, years) {
