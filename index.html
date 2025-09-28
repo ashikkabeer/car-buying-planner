@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Smart Money Planner</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>⚡</text></svg>">
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js"></script>
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="header-content">
+        <div class="brand">⚡ Smart Money Planner</div>
+        <div class="byline">Plan your car loan + investments smarter</div>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="form-section">
+        <h2>Financial Planning Inputs</h2>
+        <form id="planner-form" autocomplete="off">
+          <div class="form-grid">
+            <div>
+              <div class="field">
+                <label for="salary">Salary</label>
+                <div class="inline-input">
+                  <input id="salary" type="number" min="0" step="0.01" placeholder="Enter amount" required />
+                  <select id="salary-period">
+                    <option value="monthly" selected>Monthly</option>
+                    <option value="annual">Annual</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="salary-growth">Expected annual salary growth (%)</label>
+                <input id="salary-growth" type="number" min="0" step="0.1" value="5" />
+              </div>
+
+              <div class="field">
+                <label for="monthly-expenses">Monthly expenses (₹)</label>
+                <input id="monthly-expenses" type="number" min="0" step="0.01" value="30000" />
+              </div>
+            </div>
+
+            <div>
+              <div class="field">
+                <label for="car-price">Car price (₹)</label>
+                <input id="car-price" type="number" min="0" step="0.01" value="1200000" />
+              </div>
+
+              <div class="field-row">
+                <div class="field">
+                  <label for="interest-rate">Interest rate (% annual)</label>
+                  <input id="interest-rate" type="number" min="0" step="0.01" value="9" />
+                </div>
+                <div class="field">
+                  <label for="loan-tenure">Tenure (years)</label>
+                  <input id="loan-tenure" type="number" min="1" step="1" value="7" />
+                </div>
+              </div>
+
+              <div class="toggle-field">
+                <input type="checkbox" id="toggle-down-payment" checked />
+                <label for="toggle-down-payment">Down payment given</label>
+              </div>
+              <div class="field">
+                <input id="down-payment" type="number" min="0" step="0.01" value="200000" placeholder="Down payment amount" />
+              </div>
+
+              <div class="toggle-field">
+                <input type="checkbox" id="toggle-emi" />
+                <label for="toggle-emi">Monthly EMI given</label>
+              </div>
+              <div class="field">
+                <input id="emi-budget" type="number" min="0" step="0.01" placeholder="Monthly EMI amount" disabled />
+              </div>
+            </div>
+
+            <div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="sip-monthly">Monthly SIP (₹)</label>
+                  <input id="sip-monthly" type="number" min="0" step="0.01" value="15000" />
+                </div>
+                <div class="field">
+                  <label for="sip-stepup">Annual step-up (%)</label>
+                  <input id="sip-stepup" type="number" min="0" step="0.1" value="10" />
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="investment-return">Expected returns (% annual)</label>
+                <input id="investment-return" type="number" min="0" step="0.1" value="12" />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button id="btn-calc" type="submit">Calculate Plan</button>
+            <button id="btn-share" type="button" class="share-button">Share Plan</button>
+            <button id="btn-reset" type="button" class="secondary">Reset Form</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="export-section" style="display: none;">
+        <div class="form-section">
+          <h2>Export Reports</h2>
+          <div class="form-actions">
+            <button id="btn-export-complete" type="button" class="export-primary">Export Complete Report (PDF)</button>
+            <button id="btn-export-summary" type="button" class="secondary">Export Summary (CSV)</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="results-section" style="display: none;">
+        <div class="summary-cards">
+          <div class="summary-card">
+            <div class="label">Loan Amount</div>
+            <div id="card-loan-amount" class="value">—</div>
+          </div>
+          <div class="summary-card">
+            <div class="label">Monthly EMI</div>
+            <div id="card-emi" class="value">—</div>
+          </div>
+          <div class="summary-card">
+            <div class="label">Down Payment</div>
+            <div id="card-dp" class="value">—</div>
+          </div>
+          <div class="summary-card">
+            <div class="label">Total Car Cost</div>
+            <div id="card-total-cost" class="value">—</div>
+          </div>
+        </div>
+
+        <div class="tabs-container">
+          <div class="tabs">
+            <button class="tab" data-tab="loan">Loan Plan</button>
+            <button class="tab" data-tab="sip">SIP Plan</button>
+            <button class="tab active" data-tab="combined">Combined View</button>
+          </div>
+
+          <div class="tab-content">
+            <div id="tab-loan" class="tab-panel">
+              <div class="chart-container">
+                <div class="chart-wrapper">
+                  <canvas id="chart-outstanding"></canvas>
+                </div>
+              </div>
+              <div class="table-section">
+                <div class="table-header">
+                  <h3>Loan Amortization Schedule</h3>
+                  <div class="export-buttons">
+                    <button id="export-loan-csv" class="secondary">Export CSV</button>
+                    <button id="export-loan-pdf" class="secondary">Export PDF</button>
+                  </div>
+                </div>
+                <div class="table-wrapper">
+                  <table id="table-loan" class="data-table">
+                    <thead>
+                      <tr>
+                        <th>Year</th>
+                        <th>EMI Paid</th>
+                        <th>Interest Paid</th>
+                        <th>Principal Repaid</th>
+                        <th>Outstanding</th>
+                      </tr>
+                    </thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div id="tab-sip" class="tab-panel">
+              <div class="chart-container">
+                <div class="chart-wrapper">
+                  <canvas id="chart-sip"></canvas>
+                </div>
+              </div>
+              <div class="table-section">
+                <div class="table-header">
+                  <h3>SIP Investment Growth</h3>
+                  <div class="export-buttons">
+                    <button id="export-sip-csv" class="secondary">Export CSV</button>
+                    <button id="export-sip-pdf" class="secondary">Export PDF</button>
+                  </div>
+                </div>
+                <div class="table-wrapper">
+                  <table id="table-sip" class="data-table">
+                    <thead>
+                      <tr>
+                        <th>Year</th>
+                        <th>SIP Contributed</th>
+                        <th>End Value</th>
+                      </tr>
+                    </thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div id="tab-combined" class="tab-panel active">
+              <div class="chart-container">
+                <div class="chart-wrapper">
+                  <canvas id="chart-emi-salary"></canvas>
+                </div>
+              </div>
+              <div class="chart-container">
+                <div class="chart-wrapper">
+                  <canvas id="chart-cashflows"></canvas>
+                </div>
+              </div>
+              <div class="chart-container">
+                <div class="chart-wrapper">
+                  <canvas id="chart-networth"></canvas>
+                </div>
+              </div>
+              <div class="chart-container">
+                <div class="chart-wrapper">
+                  <canvas id="chart-savings"></canvas>
+                </div>
+              </div>
+              <div class="table-section">
+                <div class="table-header">
+                  <h3>Yearly Financial Breakdown</h3>
+                  <div class="export-buttons">
+                    <button id="export-breakdown-csv" class="secondary">Export CSV</button>
+                    <button id="export-breakdown-pdf" class="secondary">Export PDF</button>
+                  </div>
+                </div>
+                <div class="table-wrapper">
+                  <table id="table-breakdown" class="data-table">
+                    <thead>
+                      <tr>
+                        <th>Year</th>
+                        <th>Salary</th>
+                        <th>EMI</th>
+                        <th>SIP</th>
+                        <th>Expenses</th>
+                        <th>Savings Left</th>
+                      </tr>
+                    </thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <span>Made with ❤️ for smarter money decisions</span>
+    </footer>
+
+    <script type="module" src="./src/app.js"></script>
+  </body>
+</html>
